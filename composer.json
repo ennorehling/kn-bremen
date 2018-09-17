@@ -1,0 +1,10 @@
+{
+    "require-dev": {
+        "phan/phan": "@stable"
+    },
+    "require": {
+        "php": ">=7.0",
+        "ext-mysqli": "*",
+        "squizlabs/php_codesniffer": "*"
+    }
+}

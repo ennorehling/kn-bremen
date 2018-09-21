@@ -85,18 +85,18 @@ if (filter_input(INPUT_POST, 'norebuild')) {
   $norebuild = TRUE;
 }
 
-$ip = filter_input(INPUT_POST, 'ip', FILTER_SANITIZE_URL);
-if ($ip) {
-  $ip = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+$post_ip = filter_input(INPUT_POST, 'ip');
+if (empty($post_ip)) {
+  $ip = filter_input(INPUT_SERVER, 'REMOTE_ADDR');
 }
 else {
-  $ip = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_FLAG_IPV4);
+  $ip = filter_var($post_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
 }
 
 if ($ip) {
-  $action = filter_input(INPUT_POST, 'action', FILTER_UNSAFE_RAW);
-  $host = filter_input(INPUT_POST, 'host', FILTER_UNSAFE_RAW);
-  $pass = filter_input(INPUT_POST, 'pass', FILTER_UNSAFE_RAW);
+  $action = filter_input(INPUT_POST, 'action');
+  $host = filter_input(INPUT_POST, 'host');
+  $pass = filter_input(INPUT_POST, 'pass');
   switch ($action) {
     case "register":
       if (check_passwd($host, $pass) === TRUE) {

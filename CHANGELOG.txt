@@ -1,0 +1,13 @@
+# changes
+
+1. chgrp www-knhb /etc/bind/rndc.key 
+
+	* war vorher bind, ist jetzt read-only für Gruppe www-knhb (das ist nur der www-knhb User).
+	* damit kann der User ohne `sudo /usr/sbin/rndc reload kn-bremen.de` aufrufen.
+	* muss also nicht mehr mit sudo aus dem bash Skript gemacht werden.
+
+2. chown www-knhb.bind /etc/bind/kn-bremen.dynip
+	* war vorher bind.bind, ist jetzt von PHP aus schreibbar.
+	* damit könnte die Datei jetzt aus dynip.php überschrieben werden
+	* muss also nicht mehr mit sudo aus dem bash Skript gemacht werden.
+

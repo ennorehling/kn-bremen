@@ -6,7 +6,8 @@
 
 define('MYSQL_HOST', 'localhost');
 define('MYSQL_USER', 'dynip');
-define('MYSQL_TABLE', 'dynip');
 define('MYSQL_PASS', 'password');
-define('REBUILD_CMD', 'sudo /etc/bind/rebuild_dynip.sh 2>&1');
+define('MYSQL_DBNAME', 'dynip');
 
+define('DNS_REBUILD', '/usr/sbin/rndc reload kn-bremen.de');
+define('DNS_FILE', '/etc/bind/kn-bremen.dynip');

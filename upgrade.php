@@ -15,6 +15,6 @@ foreach ($hosts as $host => $ip) {
   $pass = $db->getPassword($host);
   if ($pass[0] != '$') {
     $hash = password_hash($pass, PASSWORD_DEFAULT);
-    $db->setPassword($host, $pass);
+    $db->setPassword($host, $hash);
   }
 }

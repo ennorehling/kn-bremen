@@ -82,7 +82,9 @@ class MySqlDatabase implements DatabaseInterface {
 
   public function getAddresses() {
     $result = array();
-    $stmt = $this->conn->prepare("SELECT host, ip FROM mappings WHERE ip REGEXP '\d+\.\d+\.\d+\.\d+'");
+    $stmt = $this->conn->prepare('SELECT host, ip FROM mappings WHERE ip REGEXP ?');
+    $regexp = '\d+\.\d+\.\d+\.\d+';
+    $stmt->bind_param('s', $regexp);
     if ($stmt->execute()) {
       $host = '';
       $ip = '';

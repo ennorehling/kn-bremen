@@ -58,7 +58,7 @@ class MySqlDatabase implements DatabaseInterface {
     $stmt->bind_param('s', $host);
     if ($stmt->execute()) {
       $pass = '';
-      $stmt->bind_result('s', $pass);
+      $stmt->bind_result($pass);
       $fetch = $stmt->fetch();
       if (is_null($fetch)) {
         $result = NULL;
@@ -86,7 +86,7 @@ class MySqlDatabase implements DatabaseInterface {
     if ($stmt->execute()) {
       $host = '';
       $ip = '';
-      $stmt->bind_result('ss', $host, $ip);
+      $stmt->bind_result($host, $ip);
       while ($stmt->fetch()) {
         $result[$host] = $ip;
       }

@@ -11,3 +11,4 @@ define('MYSQL_DBNAME', 'dynip');
 
 define('DNS_REBUILD', '/usr/sbin/rndc reload kn-bremen.de');
 define('DNS_FILE', '/etc/bind/kn-bremen.dynip');
+define('DNS_DB', '/etc/bind/db.kn-bremen');

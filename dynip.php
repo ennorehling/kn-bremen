@@ -27,7 +27,7 @@ function build_dns_config() {
   $file = fopen(DNS_FILE, 'w');
   $hosts = $database->getAddresses();
   foreach ($hosts as $host => $ip) {
-    fprintf($file, "%s\tIN A\t%s", $host, $ip);
+    fprintf($file, "%s\tIN A\t%s\n", $host, $ip);
   }
   fclose($file);
 }

@@ -40,7 +40,8 @@ function incr_serial() {
   $matches = array();
   foreach ($lines as $line) {
     if (is_null($serial) && (1 == preg_match('/(\s*)(\d+)(\s*);\s*serial/', $line, $matches))) {
-      $serial = 1 + intval($matches[1]);
+      $serial = 1 + intval($matches[2]);
+      echo "new serial is $serial" . PHP_EOL;
       $line = $matches[1] . $serial . $matches[3] . '; serial';
     }
     fwrite($file, $line . PHP_EOL);

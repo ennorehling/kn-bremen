@@ -1,0 +1,31 @@
+// https://aka.ms/devcontainer.json
+{
+	"name": "KN-Bremen DynIP Service",
+	"dockerComposeFile": [
+		"../compose.yaml"
+	],
+	"service": "dynip",
+	"workspaceFolder": "/var/www/html",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"recca0120.vscode-phpunit",
+				"bmewburn.vscode-intelephense-client",
+				"DEVSENSE.phptools-vscode",
+				"waderyan.gitblame",
+				"EditorConfig.EditorConfig",
+                "mechatroner.rainbow-csv",
+                "neilbrayfield.php-docblocker",
+                "st-pham.php-refactor-tool"
+			],
+			"settings": {
+                "php.format.codeStyle": "PSR-12"
+            }
+		}
+	},
+	"remoteUser": "knb",
+	"postCreateCommand": "chown -R 1000:1000 /var/www/html 2>/dev/null || true"
+	// "forwardPorts": [],
+	// "runServices": [],
+	// "shutdownAction": "none",
+}

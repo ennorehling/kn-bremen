@@ -1,4 +1,4 @@
 vendor/
 settings.php
-
+.env
 /nbproject/private/

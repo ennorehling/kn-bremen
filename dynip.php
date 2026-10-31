@@ -32,7 +32,8 @@ function build_dns_config() {
   fclose($file);
 }
 
-function incr_serial() {
+function incr_serial(): void
+{
   $text = file_get_contents(DNS_DB);
   $lines = explode(PHP_EOL, $text);
   $file = fopen(DNS_DB, 'w');
@@ -52,7 +53,8 @@ function incr_serial() {
 /**
  *
  */
-function rebuild() {
+function rebuild(): void
+{
   printf("<p>bind database rebuild (" . posix_getuid() . "/" . posix_geteuid() . ")</p>\n");
   $exit = 0;
   echo "<pre>\n";
@@ -60,7 +62,7 @@ function rebuild() {
   incr_serial();
   $result = system(DNS_REBUILD, $exit);
   echo "</pre>\n";
-  if ($result === FALSE or $exit != 0) {
+  if ($result === false or $exit != 0) {
     printf("<p>bind database rebuild failed: " . $result . "($exit)</p>\n");
   }
   else {
@@ -77,36 +79,46 @@ function rebuild() {
  *   The plaintext password.
  * 
  * @return boolean
- *   TRUE if password matches.
+ *   true if password matches.
  */
-function check_passwd($host, $pass) {
+function check_passwd(string $host, string $pass): bool
+{
   global $database;
   // Legacy: passwords are hashed with sha256 before they get stored:
   $pwhash = hash('sha256', $pass);
   
   $dbpass = $database->getPassword($host);
-  if (password_verify($pwhash, $dbpass)) {
-    return TRUE;
+  if ($dbpass) {
+    if (password_verify($dbpass, $pwhash)) {
+      return true;
+    }
+    // Compatibility with the bad old password hashes:
+    $compat = password_hash($dbpass, PASSWORD_DEFAULT);
+    return $compat && password_verify($compat, $pwhash);
   }
-  // Compatibility with the bad old password hashes:
-  $compat = password_hash($dbpass, PASSWORD_DEFAULT);
-  return password_verify($compat, $pwhash);
+  return false;
 }
 
-function update_host($host, $ip) {
+function update_host(string $host, string $ip): bool
+{
   global $database;
   return $database->setAddress($host, $ip);
 }
 
-function delete_host($host) {
+function delete_host(string $host) {
   global $database;
   return $database->setAddress($host, NULL);
 }
 
+function error(string $message, int $status = 400) {
+  http_response_code($status);
+  return $message;
+}
+
 function main() {
-  $norebuild = FALSE;
+  $norebuild = false;
   if (filter_input(INPUT_POST, 'norebuild')) {
-    $norebuild = TRUE;
+    $norebuild = true;
   }
 
   $post_ip = filter_input(INPUT_POST, 'ip');
@@ -121,40 +133,48 @@ function main() {
     $action = filter_input(INPUT_POST, 'action');
     $host = filter_input(INPUT_POST, 'host');
     $pass = filter_input(INPUT_POST, 'pass');
+    if (!$pass) {
+      return error("request requires a password");
+    }
+    if (!$host) {
+      return error("request requires a host");
+    }
     switch ($action) {
       case "register":
-        if (check_passwd($host, $pass) === TRUE) {
+        if (check_passwd($host, $pass) === true) {
           update_host($host, $ip);
           printf("<p>register successful</p>\n");
-          if ($norebuild == FALSE) {
+          if ($norebuild == false) {
             rebuild();
           }
         }
         else {
-          printf("<p>register unsuccessful</p>\n");
+          return error("<p>register unsuccessful</p>\n");
         }
         break;
 
       case "unregister":
-        if (check_passwd($host, $pass) === TRUE) {
+        if (check_passwd($host, $pass) === true) {
           delete_host($host);
-          if ($norebuild == FALSE) {
+          if ($norebuild == false) {
             rebuild();
           }
         }
         else {
-          printf("<p>unregister unsuccessful</p>\n");
+          return error("<p>unregister unsuccessful</p>\n");
         }
         break;
 
       default:
-        printf("<p>ERROR: unknown action</p>");
+        return error("<p>ERROR: unknown action</p>");
     }
   }
   else {
-    printf("<p>invalid IP: '" . $ip . "'</p>\n");
+    return "<p>invalid IP: '" . $ip . "'</p>\n";
   }
 }
+
+$response = main();
 ?>
 <html>
 <head>
@@ -162,7 +182,7 @@ function main() {
 </head>
 <body bgcolor="white">
 <?php
-main();
+echo $response;
 ?>
 </body>
 </html>

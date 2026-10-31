@@ -19,41 +19,8 @@
 
 require_once __DIR__ . '/settings.php';
 
-interface DatabaseInterface {
-  /**
-   * Get the password hash for a single host.
-   *
-   * @param string $host
-   *
-   * @return string|null|false
-   */
-  public function getPassword($host);
-
-  /**
-   * Get IP addresses for all known hosts.
-   *
-   * @return array|false
-   */
-  public function getAddresses();
-
-  /**
-   * 
-   * @param string $host
-   * @param string $addr
-   */
-  public function setAddress($host, $addr);
-
-  /**
-   * 
-   * @param string $host
-   * @param string $pass
-   */
-  public function setPassword($host, $pass);
-
-}
-
-class MySqlDatabase implements DatabaseInterface {
-  protected $conn;
+class MySqlDatabase {
+  protected mysqli $conn;
 
   function __construct() {
       $this->conn = new mysqli(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DBNAME);
@@ -63,7 +30,8 @@ class MySqlDatabase implements DatabaseInterface {
     $this->conn->close();
   }
 
-  public function getPassword($host) {
+  public function getPassword(string $host): string
+  {
     $result = FALSE;
     $stmt = $this->conn->prepare('SELECT pass FROM passwd WHERE host=?');
     $stmt->bind_param('s', $host);
@@ -82,7 +50,8 @@ class MySqlDatabase implements DatabaseInterface {
     return $result;
   }
 
-  public function setPassword($host, $pass) {
+  public function setPassword(string $host, string $pass): bool
+  {
     $stmt = $this->conn->prepare('INSERT INTO passwd (host, pass) VALUES (?,?) ' .
             'ON DUPLICATE KEY UPDATE pass=?');
     $stmt->bind_param('sss', $host, $pass, $pass);
@@ -91,7 +60,12 @@ class MySqlDatabase implements DatabaseInterface {
     return $result;
   }
 
-  public function getAddresses() {
+  /**
+   * 
+   * @return string[]
+   */
+  public function getAddresses() : array
+  {
     $result = array();
     $stmt = $this->conn->prepare('SELECT host, ip FROM mappings WHERE ip REGEXP ?');
     $regexp = '\d+\.\d+\.\d+\.\d+';
@@ -108,7 +82,8 @@ class MySqlDatabase implements DatabaseInterface {
     return $result;
   }
 
-  public function setAddress($host, $addr) {
+  public function setAddress(string $host, ?string $addr = null) : bool
+  {
     if (is_null($addr)) {
       $stmt = $this->conn->prepare('DELETE FROM mappings WHERE host=?');
       $stmt->bind_param('s', $host);

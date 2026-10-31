@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "environments": [
+    {
+      "id": "b0zq0zte",
+      "name": "Demo",
+      "protocol": "https",
+      "host": "httpbin.org",
+      "color": "green",
+      "variables": [
+        {
+          "key": "userName",
+          "value": "demo",
+          "description": "示例变量 / Sample variable"
+        }
+      ]
+    },
+    {
+      "id": "fg88kvum",
+      "name": "Local",
+      "protocol": "http",
+      "host": "localhost",
+      "port": 8080,
+      "basePath": "/",
+      "variables": [
+        {
+          "key": "userName",
+          "value": "dev"
+        }
+      ]
+    }
+  ],
+  "headers": [
+    {
+      "key": "X-Requested-By",
+      "value": "http-studio",
+      "description": "集合级公共请求头 / Collection-level header"
+    }
+  ],
+  "items": [
+    {
+      "id": "d6j8jeb8",
+      "type": "folder",
+      "name": "示例 Examples",
+      "description": "基于 httpbin.org 的示例请求 / Sample requests against httpbin.org",
+      "items": [
+        {
+          "id": "ni3nosuf",
+          "type": "request",
+          "name": "获取示例 Get example",
+          "method": "GET",
+          "url": "/get",
+          "params": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "lang",
+              "value": "zh-CN",
+              "enabled": false
+            }
+          ],
+          "headers": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "assertions": [
+            {
+              "source": "status",
+              "operator": "eq",
+              "expected": "200"
+            },
+            {
+              "source": "jsonpath",
+              "property": "$.args.page",
+              "operator": "eq",
+              "expected": "1"
+            }
+          ]
+        },
+        {
+          "id": "jchh5uk2",
+          "type": "request",
+          "name": "提交 JSON Post JSON",
+          "description": "登录示例：从响应中捕获 token 供后续请求使用 / Captures a token for later requests",
+          "method": "POST",
+          "url": "/post",
+          "body": {
+            "mode": "json",
+            "json": {
+              "username": "{{userName}}",
+              "token": "demo-token-123",
+              "remember": true
+            }
+          },
+          "assertions": [
+            {
+              "source": "status",
+              "operator": "eq",
+              "expected": "200"
+            },
+            {
+              "source": "jsonpath",
+              "property": "$.json.username",
+              "operator": "exists"
+            },
+            {
+              "source": "responseTime",
+              "operator": "lt",
+              "expected": "5000"
+            }
+          ],
+          "captures": [
+            {
+              "variable": "token",
+              "source": "jsonpath",
+              "path": "$.json.token"
+            }
+          ]
+        },
+        {
+          "id": "ohoyhvkk",
+          "type": "request",
+          "name": "Bearer 认证 Bearer auth",
+          "description": "先发送「提交 JSON」以捕获 {{token}} / Send \"Post JSON\" first to capture {{token}}",
+          "method": "GET",
+          "url": "/bearer",
+          "auth": {
+            "type": "bearer",
+            "token": "{{token}}"
+          },
+          "assertions": [
+            {
+              "source": "status",
+              "operator": "eq",
+              "expected": "200"
+            },
+            {
+              "source": "jsonpath",
+              "property": "$.authenticated",
+              "operator": "eq",
+              "expected": "true"
+            }
+          ]
+        },
+        {
+          "id": "xrzptgy1",
+          "type": "folder",
+          "name": "表单 Forms",
+          "items": [
+            {
+              "id": "v7wwygzo",
+              "type": "request",
+              "name": "表单提交 Form urlencoded",
+              "method": "POST",
+              "url": "/post",
+              "body": {
+                "mode": "form",
+                "form": [
+                  {
+                    "key": "name",
+                    "value": "张三"
+                  },
+                  {
+                    "key": "city",
+                    "value": "Shanghai"
+                  }
+                ]
+              },
+              "assertions": [
+                {
+                  "source": "status",
+                  "operator": "eq",
+                  "expected": "200"
+                },
+                {
+                  "source": "jsonpath",
+                  "property": "$.form.name",
+                  "operator": "eq",
+                  "expected": "张三"
+                }
+              ]
+            },
+            {
+              "id": "ixom620w",
+              "type": "request",
+              "name": "文件上传 Multipart upload",
+              "method": "POST",
+              "url": "/post",
+              "body": {
+                "mode": "multipart",
+                "multipart": [
+                  {
+                    "key": "description",
+                    "value": "conf file",
+                    "type": "text"
+                  },
+                  {
+                    "key": "file",
+                    "value": ".http/conf.json",
+                    "type": "file"
+                  }
+                ]
+              },
+              "assertions": [
+                {
+                  "source": "status",
+                  "operator": "eq",
+                  "expected": "200"
+                },
+                {
+                  "source": "jsonpath",
+                  "property": "$.files.file",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nl7oj0a7",
+      "type": "folder",
+      "name": "DynIP",
+      "items": [
+        {
+          "id": "yf8hmke1",
+          "type": "request",
+          "name": "Register IP",
+          "method": "POST",
+          "url": "/dynip.php",
+          "body": {
+            "mode": "form",
+            "form": [
+              {
+                "key": "action",
+                "value": "register"
+              },
+              {
+                "key": "pass",
+                "value": "password"
+              },
+              {
+                "key": "host",
+                "value": "{{userName}}"
+              },
+              {
+                "key": "ip",
+                "value": "10.0.0.8"
+              }
+            ]
+          },
+          "assertions": [
+            {
+              "source": "status",
+              "operator": "eq",
+              "expected": "200"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

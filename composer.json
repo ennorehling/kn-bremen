@@ -1,7 +1,8 @@
 {
     "require-dev": {
         "squizlabs/php_codesniffer": "*",
-        "phpstan/phpstan": "^2.3"
+        "phpstan/phpstan": "^2.3",
+        "phan/phan": "^6.0"
     },
     "require": {
         "php": ">=8.4",

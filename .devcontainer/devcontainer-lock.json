@@ -1,0 +1,14 @@
+{
+  "features": {
+    "ghcr.io/guiyomh/features/vim:0": {
+      "version": "0.0.1",
+      "resolved": "ghcr.io/guiyomh/features/vim@sha256:53c64a458fe88f40862ad5f94ea3f8d7fdf46c3fb42bdaa8a6a09f7d44f182f7",
+      "integrity": "sha256:53c64a458fe88f40862ad5f94ea3f8d7fdf46c3fb42bdaa8a6a09f7d44f182f7"
+    },
+    "ghcr.io/jajera/features/ag:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/jajera/features/ag@sha256:e9a4309f5409393b9ad4025836c19b6b4889286095a6f5e0b9b2cf2c41839bfa",
+      "integrity": "sha256:e9a4309f5409393b9ad4025836c19b6b4889286095a6f5e0b9b2cf2c41839bfa"
+    }
+  }
+}

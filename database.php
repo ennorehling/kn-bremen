@@ -62,36 +62,49 @@ class MySqlDatabase {
 
   /**
    * 
-   * @return string[]
+   * @return array[]
    */
   public function getAddresses() : array
   {
     $result = array();
-    $stmt = $this->conn->prepare('SELECT host, ip FROM mappings WHERE ip REGEXP ?');
-    $regexp = '\d+\.\d+\.\d+\.\d+';
+    $stmt = $this->conn->prepare('SELECT host, ipv4, ipv6 FROM mappings');
     $stmt->bind_param('s', $regexp);
     if ($stmt->execute()) {
       $host = '';
-      $ip = '';
-      $stmt->bind_result($host, $ip);
+      $ipv4 = '';
+      $ipv6 = '';
+      $stmt->bind_result($host, $ipv4, $ipv6);
       while ($stmt->fetch()) {
-        $result[$host] = $ip;
+        $result[$host] = [
+          'ipv4' => $ipv4,
+          'ipv6' => $ipv6,
+        ];
       }
     }
     $stmt->close();
     return $result;
   }
 
-  public function setAddress(string $host, ?string $addr = null) : bool
+  public function setAddress(string $host, ?string $ipv4 = null, ?string $ipv6 = null) : bool
   {
-    if (is_null($addr)) {
+    if (is_null($ipv4) && is_null($ipv6)) {
       $stmt = $this->conn->prepare('DELETE FROM mappings WHERE host=?');
       $stmt->bind_param('s', $host);
     }
     else {
-      $stmt = $this->conn->prepare('INSERT INTO mappings (host, ip, created) VALUES (?,?,NOW()) ' .
-              'ON DUPLICATE KEY UPDATE ip=?');
-      $stmt->bind_param('sss', $host, $addr, $addr);
+      if ($ipv4) {
+        $stmt = $this->conn->prepare('INSERT INTO mappings (host, ipv4, created) VALUES (?,?,NOW()) ' .
+                'ON DUPLICATE KEY UPDATE ip=?');
+        $stmt->bind_param('sss', $host, $ipv4, $ipv4);
+      } elseif ($ipv6) {
+        $stmt = $this->conn->prepare('INSERT INTO mappings (host, ipv6, created) VALUES (?,?,NOW()) ' .
+                'ON DUPLICATE KEY UPDATE ipv6=?');
+        $stmt->bind_param('sss', $host, $ipv6, $ipv6);
+      } else {
+        $stmt = $this->conn->prepare('INSERT INTO mappings (host, ipv4, ipv6, created) VALUES (?,?,?,NOW()) ' .
+                'ON DUPLICATE KEY UPDATE ipv4=?,ipv6=?');
+        $stmt->bind_param('sss', $host, $ipv4, $ipv6, $ipv4, $ipv6);
+      }
     }
     $result = $stmt->execute();
     $stmt->close();

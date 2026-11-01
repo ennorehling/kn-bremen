@@ -17,7 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once __DIR__ . '/database.php';
+/**
+ * One-time conversion from old sha256 password format to new.
+ * 
+ * New password hashes are bcrypt(sha256($password));
+ */
+require_once __DIR__ . '/../database.php';
 
 $db = new MySqlDatabase();
 

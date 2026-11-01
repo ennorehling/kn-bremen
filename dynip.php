@@ -26,8 +26,13 @@ function build_dns_config() {
   global $database;
   $file = fopen(DNS_FILE, 'w');
   $hosts = $database->getAddresses();
-  foreach ($hosts as $host => $ip) {
-    fprintf($file, "%s\tIN A\t%s\n", $host, $ip);
+  foreach ($hosts as $name => $addr) {
+    if ($ip = $addr['ipv4']) {
+      fprintf($file, "%s\tIN A\t%s\n", $name, $ip);
+    }
+    if ($ip = $addr['ipv6']) {
+      fprintf($file, "%s\tIN AAAA\t%s\n", $name, $ip);
+    }
   }
   fclose($file);
 }
@@ -84,17 +89,16 @@ function rebuild(): void
 function check_passwd(string $host, string $pass): bool
 {
   global $database;
-  // Legacy: passwords are hashed with sha256 before they get stored:
-  $pwhash = hash('sha256', $pass);
   
   $dbpass = $database->getPassword($host);
   if ($dbpass) {
-    if (password_verify($dbpass, $pwhash)) {
+    if (password_verify($pass, $dbpass)) {
       return true;
     }
-    // Compatibility with the bad old password hashes:
-    $compat = password_hash($dbpass, PASSWORD_DEFAULT);
-    return $compat && password_verify($compat, $pwhash);
+
+    // Legacy passwords are hashed with sha256 before they get stored:
+    $compat = password_hash(hash('sha256', $pass), PASSWORD_DEFAULT);
+    return $compat && password_verify($compat, $dbpass);
   }
   return false;
 }
@@ -116,23 +120,19 @@ function error(string $message, int $status = 400) {
 }
 
 function main() {
-  $norebuild = false;
-  if (filter_input(INPUT_POST, 'norebuild')) {
-    $norebuild = true;
-  }
+  $norebuild = (bool) $_POST['norebuild'];
 
-  $post_ip = filter_input(INPUT_POST, 'ip');
+  $post_ip = $_POST['ip'];
   if (empty($post_ip)) {
-    $ip = filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+    $ip = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
   }
   else {
     $ip = filter_var($post_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
   }
-
   if ($ip) {
-    $action = filter_input(INPUT_POST, 'action');
-    $host = filter_input(INPUT_POST, 'host');
-    $pass = filter_input(INPUT_POST, 'pass');
+    $action = $_POST['action'];
+    $host = $_POST['host'];
+    $pass = $_POST['pass'];
     if (!$pass) {
       return error("request requires a password");
     }
@@ -149,7 +149,7 @@ function main() {
           }
         }
         else {
-          return error("<p>register unsuccessful</p>\n");
+          return error("<p>register: invalid host or password</p>\n");
         }
         break;
 
@@ -161,12 +161,12 @@ function main() {
           }
         }
         else {
-          return error("<p>unregister unsuccessful</p>\n");
+          return error("<p>unregister: invalid host or password</p>\n");
         }
         break;
 
       default:
-        return error("<p>ERROR: unknown action</p>");
+        return error("<p>ERROR: unknown action $action</p>");
     }
   }
   else {

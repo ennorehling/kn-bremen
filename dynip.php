@@ -29,6 +29,10 @@ function build_dns_config() {
   foreach ($hosts as $host => $ip) {
     fprintf($file, "%s\tIN A\t%s\n", $host, $ip);
   }
+  $hosts6 = $database->getAddresses6();
+  foreach ($hosts6 as $host => $ip) {
+    fprintf($file, "%s\tIN AAAA\t%s\n", $host, $ip);
+  }
   fclose($file);
 }
 
@@ -95,6 +99,7 @@ function check_passwd($host, $pass) {
 
 function update_host($host, $ip) {
   global $database;
+  printf("<p>update_host called</p>\n");
   return $database->setAddress($host, $ip);
 }
 
@@ -109,12 +114,11 @@ function main() {
     $norebuild = TRUE;
   }
 
-  $post_ip = filter_input(INPUT_POST, 'ip');
+  $post_ip = filter_input(INPUT_POST, 'ipv6');
   if (empty($post_ip)) {
     $ip = filter_input(INPUT_SERVER, 'REMOTE_ADDR');
-  }
-  else {
-    $ip = filter_var($post_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+  } else {
+    $ip = filter_var($post_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
   }
 
   if ($ip) {
@@ -129,8 +133,7 @@ function main() {
           if ($norebuild == FALSE) {
             rebuild();
           }
-        }
-        else {
+        } else {
           printf("<p>register unsuccessful</p>\n");
         }
         break;
@@ -141,8 +144,7 @@ function main() {
           if ($norebuild == FALSE) {
             rebuild();
           }
-        }
-        else {
+        } else {
           printf("<p>unregister unsuccessful</p>\n");
         }
         break;
@@ -150,8 +152,7 @@ function main() {
       default:
         printf("<p>ERROR: unknown action</p>");
     }
-  }
-  else {
+  } else {
     printf("<p>invalid IP: '" . $ip . "'</p>\n");
   }
 }

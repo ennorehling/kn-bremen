@@ -35,6 +35,7 @@ interface DatabaseInterface {
    * @return array|false
    */
   public function getAddresses();
+  public function getAddresses6();
 
   /**
    * 
@@ -108,14 +109,29 @@ class MySqlDatabase implements DatabaseInterface {
     return $result;
   }
 
-  public function setAddress($host, $addr) {
-    if (is_null($addr)) {
-      $stmt = $this->conn->prepare('DELETE FROM mappings WHERE host=?');
-      $stmt->bind_param('s', $host);
+  public function getAddresses6() {
+    $result = array();
+    $stmt = $this->conn->prepare('SELECT host, ipv6 FROM mappings6');
+    if ($stmt->execute()) {
+      $host = '';
+      $ip = '';
+      $stmt->bind_result($host, $ip);
+      while ($stmt->fetch()) {
+        $result[$host] = $ip;
+      }
     }
-    else {
-      $stmt = $this->conn->prepare('INSERT INTO mappings (host, ip, created) VALUES (?,?,NOW()) ' .
-              'ON DUPLICATE KEY UPDATE ip=?');
+    $stmt->close();
+    return $result;
+  }
+
+  public function setAddress($host, $addr) {
+    printf("<p>setAddress $addr</p>\n");
+    if (is_null($addr)) {
+      $stmt = $this->conn->prepare('DELETE FROM mappings6 WHERE host=?');
+      $stmt->bind_param('s', $host);
+    } else {
+      $stmt = $this->conn->prepare('INSERT INTO mappings6 (host, ipv6, created) VALUES (?,?,NOW()) ' .
+              'ON DUPLICATE KEY UPDATE ipv6=?');
       $stmt->bind_param('sss', $host, $addr, $addr);
     }
     $result = $stmt->execute();

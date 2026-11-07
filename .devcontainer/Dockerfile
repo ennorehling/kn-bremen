@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/devcontainers/php:4-8.4-trixie
 
 # Install MariaDB client
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get install -y mariadb-client \
+    && apt-get install -y mariadb-client nodejs npm \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Install php-mysql driver

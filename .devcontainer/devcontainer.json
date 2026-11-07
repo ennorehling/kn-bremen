@@ -24,6 +24,14 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
+				"recca0120.vscode-phpunit",
+				"bmewburn.vscode-intelephense-client",
+				"DEVSENSE.phptools-vscode",
+				"waderyan.gitblame",
+				"EditorConfig.EditorConfig",
+                "mechatroner.rainbow-csv",
+                "neilbrayfield.php-docblocker",
+                "st-pham.php-refactor-tool",
 				"lupee.http-studio"
 			]
 		}

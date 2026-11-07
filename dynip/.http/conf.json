@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "environments": [
+    {
+      "id": "i0p7wza9",
+      "name": "演示 Demo",
+      "protocol": "https",
+      "host": "httpbin.org",
+      "color": "green",
+      "variables": [
+        {
+          "key": "userName",
+          "value": "demo",
+          "description": "示例变量 / Sample variable"
+        }
+      ]
+    },
+    {
+      "id": "m7rdgbd0",
+      "name": "本地 Local",
+      "protocol": "http",
+      "host": "localhost",
+      "port": 8080,
+      "variables": [
+        {
+          "key": "userName",
+          "value": "dev"
+        }
+      ]
+    }
+  ],
+  "headers": [
+    {
+      "key": "X-Requested-By",
+      "value": "http-studio",
+      "description": "集合级公共请求头 / Collection-level header"
+    }
+  ],
+  "items": [
+    {
+      "id": "ubbre7yo",
+      "type": "folder",
+      "name": "Legacy Forms",
+      "items": [
+        {
+          "id": "nbpvy1uj",
+          "type": "request",
+          "name": "Register",
+          "method": "POST",
+          "url": "/dynip.php",
+          "body": {
+            "mode": "form",
+            "form": [
+              {
+                "key": "host",
+                "value": "test"
+              },
+              {
+                "key": "pass",
+                "value": "password"
+              },
+              {
+                "key": "action",
+                "value": "register"
+              },
+              {
+                "key": "ip",
+                "value": "10.0.0.1"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "skasc46g",
+      "type": "folder",
+      "name": "Examples",
+      "items": [
+        {
+          "id": "lyhi00vx",
+          "type": "request",
+          "name": "获取示例 Get example",
+          "method": "GET",
+          "url": "/get",
+          "params": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "lang",
+              "value": "zh-CN",
+              "enabled": false
+            }
+          ],
+          "headers": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "assertions": [
+            {
+              "source": "status",
+              "operator": "eq",
+              "expected": "200"
+            },
+            {
+              "source": "jsonpath",
+              "property": "$.args.page",
+              "operator": "eq",
+              "expected": "1"
+            }
+          ]
+        },
+        {
+          "id": "lcz7jxt6",
+          "type": "request",
+          "name": "提交 JSON Post JSON",
+          "description": "登录示例：从响应中捕获 token 供后续请求使用 / Captures a token for later requests",
+          "method": "POST",
+          "url": "/post",
+          "body": {
+            "mode": "json",
+            "json": {
+              "username": "{{userName}}",
+              "token": "demo-token-123",
+              "remember": true
+            }
+          },
+          "assertions": [
+            {
+              "source": "status",
+              "operator": "eq",
+              "expected": "200"
+            },
+            {
+              "source": "jsonpath",
+              "property": "$.json.username",
+              "operator": "exists"
+            },
+            {
+              "source": "responseTime",
+              "operator": "lt",
+              "expected": "5000"
+            }
+          ],
+          "captures": [
+            {
+              "variable": "token",
+              "source": "jsonpath",
+              "path": "$.json.token"
+            }
+          ]
+        },
+        {
+          "id": "lvqs6hxc",
+          "type": "request",
+          "name": "Bearer 认证 Bearer auth",
+          "description": "先发送「提交 JSON」以捕获 {{token}} / Send \"Post JSON\" first to capture {{token}}",
+          "method": "GET",
+          "url": "/bearer",
+          "auth": {
+            "type": "bearer",
+            "token": "{{token}}"
+          },
+          "assertions": [
+            {
+              "source": "status",
+              "operator": "eq",
+              "expected": "200"
+            },
+            {
+              "source": "jsonpath",
+              "property": "$.authenticated",
+              "operator": "eq",
+              "expected": "true"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

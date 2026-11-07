@@ -20,7 +20,7 @@ class LegacyTest extends TestCase
     {
         parent::setUp();
         $password = password_hash('password', PASSWORD_DEFAULT);
-        $this->host = Host::create([
+        $this->host = Host::factory()->create([
             'password' => $password,
             'name' => 'test',
         ]);

@@ -6,7 +6,6 @@ use App\Enums\LegacyAction;
 use App\Http\Requests\LegacyRequest;
 use App\Models\Host;
 use App\Models\Mapping;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 

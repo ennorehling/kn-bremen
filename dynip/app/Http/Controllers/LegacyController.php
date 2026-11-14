@@ -21,8 +21,8 @@ class LegacyController extends Controller
                 Rule::enum(LegacyAction::class),
             ],
             'ip' => ['sometimes', 'ip'],
-            'ipv4' => ['sometimes', 'ipv4', 'prohibits:ip'],
-            'ipv6' => ['sometimes', 'ipv6', 'prohibits:ip'],
+            'ipv4' => ['sometimes', 'ipv4', 'prohibits:ip,ipv6'],
+            'ipv6' => ['sometimes', 'ipv6', 'prohibits:ip,ipv4'],
             'norebuild' => 'boolean',
         ]);
         if ($validator->fails()) {
@@ -33,19 +33,32 @@ class LegacyController extends Controller
         }
         $hostname = $request->input('host');
         $action = LegacyAction::from($request->input('action'));
+        $host = Host::query()->where([
+            'name' => $hostname,
+        ])->first();
+        $host_id = $host->id;
 
-        if ($action == LegacyAction::Register) {
-            if (!($ip = $request->input('ip'))) {
-                $ip = $request->ip();
+        if ($action == LegacyAction::UnRegister) {
+            Mapping::query()->where('host_id', '=', $host_id)->delete();
+            return response()->noContent();
+        }
+        elseif ($action == LegacyAction::Register) {
+            if ($ip = $request->input('ipv4')) {
+                $family = AF_INET;
             }
-            $family = AF_INET;
-            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            elseif ($ip = $request->input('ipv6')) {
                 $family = AF_INET6;
             }
-            $host = Host::query()->where([
-                'name' => $hostname,
-            ])->first();
-            $host_id = $host->id;
+            else {
+                $ip = $request->input('ip');
+                if (! $ip) {
+                    $ip = $request->ip();
+                }
+                $family = AF_INET;
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+                    $family = AF_INET6;
+                }
+            }
             $result = Mapping::query()->updateOrCreate(
                 [
                     'host_id' => $host_id,

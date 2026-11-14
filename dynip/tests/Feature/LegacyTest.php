@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Host;
+use App\Models\Mapping;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Override;
@@ -34,14 +35,14 @@ class LegacyTest extends TestCase
         $this->post($route, [
             'host' => 'test',
             'pass' => 'password',
-        ])->assertUnprocessable()->assertSeeText('The action field is required.')->assertViewIs('legacy');
+        ])->assertSeeText('The action field is required.')->assertViewIs('legacy')->assertUnprocessable();
 
         // the host must exist:
         $this->post($route, [
             'host' => 'incorrect',
             'pass' => 'password',
             'action' => 'register',
-        ])->assertUnprocessable()->assertSeeText('The selected host is invalid.');
+        ])->assertSeeText('The selected host is invalid.')->assertUnprocessable();
 
         $this->post($route, [
             'host' => 'test',
@@ -53,6 +54,30 @@ class LegacyTest extends TestCase
             'host' => 'test',
             'pass' => 'password',
         ])->assertUnprocessable()->assertSeeText('The action field is required.');
+
+        $this->post($route, [
+            'host' => 'test',
+            'pass' => 'password',
+            'action' => 'register',
+            'ip' => $ip = $this->faker->unique()->ipv4(),
+            'ipv4' => $ip,
+        ])->assertUnprocessable()->assertSeeText('The ipv4 field prohibits ip / ipv6 from being present.');
+
+        $this->post($route, [
+            'host' => 'test',
+            'pass' => 'password',
+            'action' => 'register',
+            'ip' => $this->faker->unique()->ipv6(),
+            'ipv6' => $this->faker->unique()->ipv4(),
+        ])->assertUnprocessable()->assertSeeText('The ipv6 field prohibits ip / ipv4 from being present.');
+
+        $this->post($route, [
+            'host' => 'test',
+            'pass' => 'password',
+            'action' => 'register',
+            'ipv4' => $this->faker->unique()->ipv4(),
+            'ipv6' => $this->faker->unique()->ipv6(),
+        ])->assertUnprocessable()->assertSeeText('The ipv4 field prohibits ip / ipv6 from being present.');
     }
 
     function test_register_ipv4() {
@@ -157,10 +182,23 @@ class LegacyTest extends TestCase
     function test_unregister() {
         // $this->markTestIncomplete('unregister action not implemented');
         $route = route('legacy.submit', absolute: false);
+        Mapping::query()->create([
+            'host_id' => $this->host->id,
+            'address' => $this->faker()->ipv4(),
+            'family' => AF_INET,
+        ]);
+        Mapping::query()->create([
+            'host_id' => $this->host->id,
+            'address' => $this->faker()->ipv6(),
+            'family' => AF_INET6,
+        ]);
+        $this->assertDatabaseCount('mappings', 2);
+
         $this->post($route, [
             'host' => 'test',
             'pass' => 'password',
             'action' => 'unregister',
-        ])->assertNotFound();
+        ])->assertNoContent();
+        $this->assertDatabaseCount('mappings', 0);
     }
 }

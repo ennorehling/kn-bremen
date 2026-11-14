@@ -23,6 +23,7 @@ class LegacyController extends Controller
             'ip' => ['sometimes', 'ip'],
             'ipv4' => ['sometimes', 'ipv4', 'prohibits:ip'],
             'ipv6' => ['sometimes', 'ipv6', 'prohibits:ip'],
+            'norebuild' => 'boolean',
         ]);
         if ($validator->fails()) {
             return response()->view('legacy', [
@@ -41,11 +42,11 @@ class LegacyController extends Controller
             if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
                 $family = AF_INET6;
             }
-            $host = Host::where([
+            $host = Host::query()->where([
                 'name' => $hostname,
             ])->first();
             $host_id = $host->id;
-            $result = Mapping::updateOrCreate(
+            $result = Mapping::query()->updateOrCreate(
                 [
                     'host_id' => $host_id,
                     'family' => $family,

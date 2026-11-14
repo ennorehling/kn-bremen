@@ -16,10 +16,7 @@ class LegacyRequest extends FormRequest
         $password = $this->input('pass');
         $hostname = $this->input('host');
         if ($password && $hostname) {
-            $host = Host::where('name', $hostname)->first();
-            /**
-             * @var Host $host
-             */
+            $host = Host::query()->where('name', $hostname)->first();
             if ($host) {
                 if (!password_verify($password, $host->password)) {
                     Log::debug("password check failed with $password for $hostname / {$host->password}");

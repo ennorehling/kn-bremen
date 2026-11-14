@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Host;
-use App\Models\Mapping;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Override;
@@ -20,7 +19,7 @@ class LegacyTest extends TestCase
     {
         parent::setUp();
         $password = password_hash('password', PASSWORD_DEFAULT);
-        $this->host = Host::factory()->create([
+        $this->host = Host::query()->create([
             'password' => $password,
             'name' => 'test',
         ]);
@@ -70,13 +69,12 @@ class LegacyTest extends TestCase
             'family' => AF_INET,
             'host_id' => $this->host->id,
         ]);
-        $ip = $this->faker->unique()->ipv4();
         $this->post($route, [
             'host' => 'test',
             'pass' => 'password',
             'action' => 'register',
         ], [
-            'REMOTE_ADDR' => $ip,
+            'REMOTE_ADDR' => $ip = $this->faker->unique()->ipv4(),
         ])->assertSeeText('dyndns entry updated')->assertViewIs('legacy')->assertSeeText($ip)->assertOk();
         $this->assertDatabaseCount('mappings', 1);
         $this->assertDatabaseHas('mappings', [
@@ -100,13 +98,14 @@ class LegacyTest extends TestCase
             'family' => AF_INET6,
             'host_id' => $this->host->id,
         ]);
-        $this->markTestIncomplete('ipv6 field not implemented');
         $this->post($route, [
             'host' => 'test',
             'pass' => 'password',
             'action' => 'register',
-            'ipv6' => $ip = $this->faker->unique()->ipv6(),
-        ])->assertOk();
+        ], [
+            'REMOTE_ADDR' => $ip = $this->faker->unique()->ipv6(),
+        ])->assertSeeText('dyndns entry updated')->assertViewIs('legacy')->assertSeeText($ip)->assertOk();
+        $this->assertDatabaseCount('mappings', 1);
         $this->assertDatabaseHas('mappings', [
             'address' => $ip,
             'family' => AF_INET6,
@@ -128,8 +127,35 @@ class LegacyTest extends TestCase
         ]);
     }
 
+    function test_register_explicit() {
+        // $this->markTestIncomplete('ipv4 & ipv6 inputs not implemented');
+        $route = route('legacy.submit', absolute: false);
+        $this->post($route, [
+            'host' => 'test',
+            'pass' => 'password',
+            'action' => 'register',
+            'ipv4' => $ip = $this->faker->unique()->ipv4(),
+        ])->assertCreated();
+        $this->assertDatabaseHas('mappings', [
+            'address' => $ip,
+            'family' => AF_INET,
+            'host_id' => $this->host->id,
+        ]);
+        $this->post($route, [
+            'host' => 'test',
+            'pass' => 'password',
+            'action' => 'register',
+            'ipv6' => $ip = $this->faker->unique()->ipv6(),
+        ])->assertCreated();
+        $this->assertDatabaseHas('mappings', [
+            'address' => $ip,
+            'family' => AF_INET6,
+            'host_id' => $this->host->id,
+        ]);
+    }
+
     function test_unregister() {
-        $this->markTestIncomplete('unregister action not implemented');
+        // $this->markTestIncomplete('unregister action not implemented');
         $route = route('legacy.submit', absolute: false);
         $this->post($route, [
             'host' => 'test',

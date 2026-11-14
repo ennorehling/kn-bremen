@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * Copyright (C) 2018 Enno Rehling
  *
  * This program is free software: you can redistribute it and/or modify
@@ -82,14 +82,14 @@ function rebuild(): void
  *   The host we want to authenticate.
  * @param string $pass
  *   The plaintext password.
- * 
+ *
  * @return boolean
  *   true if password matches.
  */
 function check_passwd(string $host, string $pass): bool
 {
   global $database;
-  
+
   $dbpass = $database->getPassword($host);
   if ($dbpass) {
     if (password_verify($pass, $dbpass)) {
@@ -120,7 +120,7 @@ function error(string $message, int $status = 400) {
 }
 
 function main() {
-  $norebuild = (bool) $_POST['norebuild'];
+  $norebuild = (bool) ($_POST['norebuild'] ?? false);
 
   $post_ip = $_POST['ip'];
   if (empty($post_ip)) {
@@ -172,6 +172,11 @@ function main() {
   else {
     return "<p>invalid IP: '" . $ip . "'</p>\n";
   }
+}
+
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+  http_response_code(405);
+  echo $_SERVER['REQUEST_METHOD'] . " Method Not Allowed" . PHP_EOL;
 }
 
 $response = main();
